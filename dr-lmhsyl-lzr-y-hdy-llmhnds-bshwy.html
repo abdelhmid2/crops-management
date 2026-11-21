@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="data:," />
+    <title>إدارة المحاصيل الزراعية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+      :root{
+        --bg:#f1f9f0;
+        --card:#ffffff;
+        --ink:#1c3a26;
+        --muted:#5f7a66;
+        --line:#d9ecdc;
+        --green:#1da362;
+        --green-dark:#12805c;
+        --green-soft:#e2f6e9;
+        --sky:#0284c7;
+        --sky-soft:#e1f2fd;
+        --gold:#b45309;
+        --gold-btn:#f59e0b;
+        --gold-soft:#fef3c7;
+        --rose:#e11d48;
+        --rose-soft:#ffe4e6;
+        --violet:#7c3aed;
+        --violet-soft:#ede9fe;
+        --shadow:0 6px 24px rgba(28,90,50,.08);
+        --shadow-sm:0 2px 10px rgba(28,90,50,.07);
+      }
+      *{ box-sizing:border-box; }
+      html{ scroll-behavior:smooth; }
+      body{
+        margin:0;
+        font-family:"Cairo", system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+        background:
+          radial-gradient(600px 300px at 100% 0%, #dff5e3 0%, rgba(223,245,227,0) 60%),
+          radial-gradient(700px 340px at 0% 12%, #e1f2fd 0%, rgba(225,242,253,0) 55%),
+          var(--bg);
+        color:var(--ink);
+        min-height:100vh;
+      }
+      button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height:2.75rem; }
+      button{ font-family:inherit; cursor:pointer; }
+      input, select, textarea{ font-family:inherit; }
+      .wrap{ max-width:1060px; margin:0 auto; padding:14px 14px 40px; }
+
+      /* ===== Hero ===== */
+      .hero{
+        position:relative; overflow:hidden;
+        background:linear-gradient(120deg,#d7f5df 0%,#e6f7ee 45%,#dcf1fd 100%);
+        border:1.5px solid #bfe6cc;
+        border-radius:26px;
+        padding:26px 22px 22px;
+        box-shadow:var(--shadow);
+        text-align:center;
+      }
+      .hero .wheat{ position:absolute; inset-inline-start:-14px; bottom:-20px; width:150px; opacity:.16; color:#12805c; pointer-events:none; }
+      .hero .wheat2{ position:absolute; inset-inline-end:-10px; top:-24px; width:120px; opacity:.12; color:#0284c7; pointer-events:none; transform:scaleX(-1); }
+      .owner-badge{
+        display:inline-flex; align-items:center; gap:8px;
+        background:var(--gold-soft); border:1.5px solid #fcd34d; color:#92400e;
+        border-radius:999px; padding:7px 18px; font-weight:900; font-size:1.02rem;
+        box-shadow:var(--shadow-sm);
+      }
+      .owner-badge svg{ color:var(--gold); flex:0 0 auto; }
+      .hero h1{ margin:10px 0 4px; font-size:2rem; font-weight:900; line-height:1.25; color:#14532d; }
+      .hero p.sub{ margin:0; color:#3c5c47; font-weight:600; font-size:1.02rem; }
+      .hero-actions{ margin-top:18px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+
+      /* ===== Quick nav ===== */
+      .quicknav{
+        position:sticky; top:10px; z-index:40;
+        display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+        margin-top:14px; padding:8px;
+        background:rgba(255,255,255,.92); backdrop-filter:blur(6px);
+        border:1.5px solid var(--line); border-radius:16px; box-shadow:var(--shadow-sm);
+      }
+      .quicknav a{
+        display:inline-flex; align-items:center; gap:7px;
+        padding:8px 16px; border-radius:11px; min-height:2.6rem;
+        color:var(--green-dark); font-weight:800; font-size:.95rem; text-decoration:none;
+        background:#f4fdf6; border:1.5px solid transparent;
+      }
+      .quicknav a:hover{ border-color:#a7dfba; background:var(--green-soft); }
+      .quicknav a svg{ color:var(--green); }
+
+      /* ===== Section heads ===== */
+      .sec-head{ display:flex; align-items:center; gap:10px; margin:26px 2px 0; flex-wrap:wrap; }
+      .sec-head .ic{ width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; }
+      .sec-head h2{ margin:0; font-size:1.35rem; font-weight:900; }
+      .sec-head .cnt{
+        background:var(--green-soft); color:var(--green-dark); border:1.5px solid #a7dfba;
+        border-radius:999px; padding:3px 13px; font-weight:900; font-size:.88rem;
+      }
+      .sec-head .hint{ margin-inline-start:auto; color:var(--muted); font-weight:600; font-size:.88rem; }
+
+      /* ===== Form groups ===== */
+      .fgroup{ border:1.5px solid var(--line); border-radius:16px; padding:16px; margin-bottom:14px; background:#fbfefb; }
+      .fgroup:last-of-type{ margin-bottom:0; }
+      .fgroup-head{ display:flex; align-items:center; gap:8px; font-weight:900; font-size:1.02rem; margin-bottom:12px; color:#2c4a36; }
+      .fgroup-head .ic{ width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+
+      /* ===== Buttons ===== */
+      .btn{
+        display:inline-flex; align-items:center; justify-content:center; gap:8px;
+        border:none; border-radius:14px; padding:10px 18px;
+        font-weight:800; font-size:1rem; line-height:1;
+        transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+        text-decoration:none;
+      }
+      .btn:active{ transform:scale(.97); }
+      .btn svg{ flex:0 0 auto; }
+      .btn-primary{ background:linear-gradient(120deg,#22b573,#12805c); color:#fff; box-shadow:0 6px 16px rgba(18,128,92,.25); }
+      .btn-primary:hover{ box-shadow:0 8px 22px rgba(18,128,92,.32); }
+      .btn-gold{ background:linear-gradient(120deg,#fbbf24,#f59e0b); color:#451a03; box-shadow:0 6px 16px rgba(245,158,11,.3); }
+      .btn-sky{ background:linear-gradient(120deg,#38bdf8,#0284c7); color:#fff; box-shadow:0 6px 16px rgba(2,132,199,.25); }
+      .btn-ghost{ background:#fff; color:var(--green-dark); border:1.5px solid var(--line); }
+      .btn-ghost:hover{ border-color:#a7dfba; background:#f4fdf6; }
+      .btn-danger-soft{ background:var(--rose-soft); color:#be123c; border:1.5px solid #fecdd3; }
+      .btn-sm{ padding:7px 13px; font-size:.9rem; border-radius:11px; min-height:2.4rem; }
+      .btn[disabled]{ opacity:.5; cursor:not-allowed; }
+
+      /* ===== Stats ===== */
+      .stats{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:16px; }
+      @media (min-width:760px){ .stats{ grid-template-columns:repeat(4,1fr); } }
+      .stat{
+        background:var(--card); border:1.5px solid var(--line); border-radius:18px;
+        padding:14px 16px; box-shadow:var(--shadow-sm);
+        display:flex; align-items:center; gap:12px;
+      }
+      .stat .ic{
+        width:48px; height:48px; flex:0 0 auto; border-radius:14px;
+        display:flex; align-items:center; justify-content:center;
+      }
+      .ic-green{ background:var(--green-soft); color:var(--green-dark); }
+      .ic-sky{ background:var(--sky-soft); color:var(--sky); }
+      .ic-rose{ background:var(--rose-soft); color:var(--rose); }
+      .ic-gold{ background:var(--gold-soft); color:var(--gold); }
+      .ic-violet{ background:var(--violet-soft); color:var(--violet); }
+      .stat .lbl{ font-size:.85rem; color:var(--muted); font-weight:700; }
+      .stat .val{ font-size:1.28rem; font-weight:900; line-height:1.2; }
+      .stat .val small{ font-size:.78rem; font-weight:700; color:var(--muted); }
+
+      /* ===== Panels & forms ===== */
+      .panel{
+        background:var(--card); border:1.5px solid var(--line); border-radius:22px;
+        padding:20px; box-shadow:var(--shadow); margin-top:18px;
+      }
+      .panel-head{ display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+      .panel-head .ic{ width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; }
+      .panel-head h2{ margin:0; font-size:1.3rem; font-weight:900; }
+      .panel-head .hint{ margin-inline-start:auto; color:var(--muted); font-weight:600; font-size:.88rem; }
+      .fgrid{ display:grid; grid-template-columns:1fr; gap:12px; }
+      @media (min-width:720px){ .fgrid{ grid-template-columns:1fr 1fr; } .fgrid .full{ grid-column:1/-1; } }
+      .field label{ display:flex; align-items:center; gap:6px; font-weight:800; font-size:.92rem; margin-bottom:6px; color:#2c4a36; }
+      .field label svg{ color:var(--green); }
+      .field input, .field select{
+        width:100%; border:1.5px solid var(--line); border-radius:12px;
+        padding:10px 12px; font-size:1rem; font-weight:600; color:var(--ink);
+        background:#fbfefb; outline:none; transition:border-color .12s, box-shadow .12s;
+      }
+      .field input:focus, .field select:focus{ border-color:var(--green); box-shadow:0 0 0 3px rgba(29,163,98,.15); background:#fff; }
+      .field .note{ font-size:.8rem; color:var(--muted); font-weight:600; margin-top:4px; }
+      .remain-preview{
+        display:flex; align-items:center; justify-content:space-between; gap:10px;
+        background:var(--rose-soft); border:1.5px dashed #fda4af; border-radius:14px;
+        padding:10px 16px; font-weight:800;
+      }
+      .remain-preview b{ font-size:1.2rem; color:#be123c; }
+      .remain-preview.ok{ background:var(--green-soft); border-color:#86d3a6; }
+      .remain-preview.ok b{ color:var(--green-dark); }
+      .form-actions{ display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+      .form-actions .btn{ flex:1 1 180px; }
+
+      /* ===== Crop cards ===== */
+      .crop{
+        background:var(--card); border:1.5px solid var(--line); border-radius:22px;
+        box-shadow:var(--shadow); margin-top:18px; overflow:hidden;
+      }
+      .crop-top{
+        padding:18px 20px 14px;
+        background:linear-gradient(120deg,#f2fbf4,#f4fafd);
+        border-bottom:1.5px solid var(--line);
+      }
+      .crop-title-row{ display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap; }
+      .crop-name{ font-size:1.45rem; font-weight:900; margin:0; display:flex; align-items:center; gap:9px; }
+      .crop-name .ic{ width:40px; height:40px; border-radius:12px; background:var(--green-soft); color:var(--green-dark); display:flex; align-items:center; justify-content:center; }
+      .crop-tools{ margin-inline-start:auto; display:flex; gap:8px; }
+      .icon-btn{
+        width:42px; height:42px; border-radius:12px; border:1.5px solid var(--line);
+        background:#fff; display:inline-flex; align-items:center; justify-content:center; color:#476b52;
+      }
+      .icon-btn:hover{ background:#f4fdf6; }
+      .icon-btn.danger{ color:#be123c; border-color:#fecdd3; background:#fff5f6; }
+      .chips{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+      .chip{
+        display:inline-flex; align-items:center; gap:6px;
+        border-radius:999px; padding:5px 12px; font-size:.86rem; font-weight:800;
+        border:1.5px solid transparent;
+      }
+      .chip svg{ flex:0 0 auto; }
+      .chip-loc{ background:var(--sky-soft); color:#075985; border-color:#bae6fd; }
+      .chip-unit{ background:var(--violet-soft); color:#5b21b6; border-color:#ddd6fe; }
+      .chip-extra{ background:var(--gold-soft); color:#92400e; border-color:#fde68a; }
+      .chip-due{ background:var(--rose-soft); color:#be123c; border-color:#fecdd3; }
+      .chip-paid{ background:var(--green-soft); color:var(--green-dark); border-color:#a7dfba; }
+      .money-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; padding:16px 20px 4px; }
+      @media (max-width:520px){ .money-grid{ grid-template-columns:1fr 1fr; } .money-grid .m3{ grid-column:1/-1; } }
+      .money{ border-radius:16px; padding:12px 14px; border:1.5px solid var(--line); background:#fbfefb; }
+      .money .mlbl{ display:flex; align-items:center; gap:6px; font-size:.83rem; font-weight:800; color:var(--muted); }
+      .money .mval{ font-size:1.22rem; font-weight:900; margin-top:2px; }
+      .money .mval small{ font-size:.75rem; color:var(--muted); font-weight:700; }
+      .money.total{ background:var(--green-soft); border-color:#bbe7cb; }
+      .money.paid{ background:var(--sky-soft); border-color:#bae6fd; }
+      .money.due{ background:var(--rose-soft); border-color:#fecdd3; }
+      .money.due .mval{ color:#be123c; }
+      .money.done{ background:var(--green-soft); border-color:#a7dfba; }
+      .money.done .mval{ color:var(--green-dark); }
+      .transport-line{
+        display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+        margin:12px 20px 0; padding:10px 14px; border-radius:14px;
+        background:#f7fcf8; border:1.5px dashed #bfe6cc; font-weight:700; font-size:.95rem;
+      }
+      .transport-line svg{ color:var(--green-dark); }
+      .transport-line b{ color:var(--green-dark); }
+
+      .crop-sec{ padding:14px 20px 6px; }
+      .crop-sec-head{ display:flex; align-items:center; gap:8px; font-weight:900; font-size:1.05rem; margin-bottom:10px; }
+      .crop-sec-head svg{ color:var(--green-dark); }
+      .crop-sec-head .cnt{ color:var(--muted); font-size:.85rem; font-weight:700; }
+
+      .progress{ height:12px; border-radius:999px; background:#e7f2e9; overflow:hidden; }
+      .progress > i{ display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#34d399,#12805c); transition:width .35s ease; }
+      .progress.sky > i{ background:linear-gradient(90deg,#38bdf8,#0284c7); }
+      .progress.gold > i{ background:linear-gradient(90deg,#fbbf24,#f59e0b); }
+      .progress-meta{ display:flex; justify-content:space-between; font-size:.85rem; font-weight:700; color:var(--muted); margin-top:6px; }
+
+      /* payments */
+      .pay-row{
+        display:flex; align-items:center; gap:10px;
+        padding:9px 12px; border:1.5px solid var(--line); border-radius:12px; margin-bottom:8px; background:#fff;
+      }
+      .pay-row .amt{ font-weight:900; color:var(--green-dark); }
+      .pay-row .meta{ color:var(--muted); font-size:.85rem; font-weight:600; }
+      .pay-row .del{ margin-inline-start:auto; }
+      .mini-del{
+        width:36px; height:36px; min-height:36px; border-radius:10px; border:1.5px solid #fecdd3;
+        background:#fff5f6; color:#be123c; display:inline-flex; align-items:center; justify-content:center;
+      }
+      .inline-form{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+      .inline-form input{
+        border:1.5px solid var(--line); border-radius:12px; padding:9px 12px;
+        font-size:.98rem; font-weight:600; background:#fbfefb; outline:none; min-height:2.75rem;
+      }
+      .inline-form input:focus{ border-color:var(--green); box-shadow:0 0 0 3px rgba(29,163,98,.15); }
+      .inline-form .grow{ flex:1 1 130px; }
+      .inline-form .w110{ flex:0 1 120px; }
+      .empty-note{ color:var(--muted); font-weight:600; font-size:.92rem; padding:6px 2px 10px; }
+
+      /* trucks */
+      .truck{
+        border:1.5px solid #bae6fd; background:linear-gradient(180deg,#f4fbff,#ffffff);
+        border-radius:18px; padding:14px 16px; margin-bottom:12px;
+      }
+      .truck.full{ border-color:#fcd34d; background:linear-gradient(180deg,#fffbeb,#ffffff); }
+      .truck.shipped{ border-color:#a7dfba; background:linear-gradient(180deg,#f2fbf4,#ffffff); opacity:.92; }
+      .truck-head{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+      .truck-head .tname{ font-weight:900; font-size:1.08rem; display:flex; align-items:center; gap:8px; }
+      .truck-head .tname .ic{ width:36px; height:36px; border-radius:11px; background:var(--sky-soft); color:var(--sky); display:flex; align-items:center; justify-content:center; }
+      .truck.full .tname .ic{ background:var(--gold-soft); color:var(--gold); }
+      .truck.shipped .tname .ic{ background:var(--green-soft); color:var(--green-dark); }
+      .status{ border-radius:999px; padding:4px 13px; font-size:.85rem; font-weight:900; }
+      .status-loading{ background:var(--sky-soft); color:#075985; }
+      .status-full{ background:var(--gold-soft); color:#92400e; }
+      .status-shipped{ background:var(--green-soft); color:var(--green-dark); }
+      .truck-head .del-truck{ margin-inline-start:auto; }
+      .load-btns{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; align-items:center; }
+      .load-btn{
+        border:1.5px solid #bae6fd; background:#fff; color:#075985;
+        border-radius:12px; padding:8px 16px; font-weight:900; font-size:1rem; min-height:2.75rem;
+        display:inline-flex; align-items:center; gap:5px;
+      }
+      .load-btn:hover{ background:var(--sky-soft); }
+      .load-btn.undo{ border-color:var(--line); color:var(--muted); }
+      .custom-load{ display:flex; gap:8px; align-items:center; }
+      .custom-load input{ width:96px; border:1.5px solid var(--line); border-radius:12px; padding:9px 10px; font-weight:700; background:#fff; outline:none; }
+      .custom-load input:focus{ border-color:var(--sky); box-shadow:0 0 0 3px rgba(2,132,199,.15); }
+      .truck-actions{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+      .full-banner{
+        display:flex; align-items:center; gap:10px; margin-top:12px;
+        background:var(--gold-soft); border:1.5px solid #fcd34d; color:#92400e;
+        border-radius:14px; padding:10px 14px; font-weight:900;
+      }
+
+      /* empty state */
+      .empty{
+        text-align:center; padding:44px 20px; color:var(--muted);
+      }
+      .empty .ic{ width:76px; height:76px; margin:0 auto 12px; border-radius:22px; background:var(--green-soft); color:var(--green-dark); display:flex; align-items:center; justify-content:center; }
+      .empty h3{ margin:0 0 6px; color:var(--ink); font-size:1.2rem; font-weight:900; }
+      .empty p{ margin:0; font-weight:600; }
+
+      /* footer */
+      footer{
+        text-align:center; margin-top:34px; padding:20px 16px;
+        background:var(--card); border:1.5px solid var(--line); border-radius:20px; box-shadow:var(--shadow-sm);
+      }
+      footer .fname{ display:flex; align-items:center; justify-content:center; gap:9px; font-weight:900; font-size:1.12rem; color:#14532d; }
+      footer .owner-line{
+        display:inline-flex; align-items:center; gap:8px; margin-top:12px;
+        background:var(--gold-soft); border:1.5px solid #fcd34d; color:#92400e;
+        border-radius:999px; padding:7px 18px; font-weight:900; font-size:1.05rem;
+      }
+      footer .owner-line svg{ color:var(--gold); flex:0 0 auto; }
+      footer .fname svg{ color:var(--green-dark); }
+      footer p{ color:var(--muted); font-weight:600; font-size:.9rem; margin:8px 0 0; }
+
+      /* modal + toast */
+      .overlay{
+        position:fixed; inset:0; background:rgba(20,60,35,.38);
+        display:none; align-items:center; justify-content:center; padding:18px; z-index:60;
+      }
+      .overlay.open{ display:flex; }
+      .modal{
+        background:#fff; border-radius:22px; padding:24px 22px; max-width:420px; width:100%;
+        box-shadow:0 24px 60px rgba(20,60,35,.25); text-align:center;
+        animation:pop .18s ease;
+      }
+      @keyframes pop{ from{ transform:scale(.94); opacity:0; } to{ transform:scale(1); opacity:1; } }
+      .modal .mic{ width:70px; height:70px; margin:0 auto 12px; border-radius:20px; display:flex; align-items:center; justify-content:center; }
+      .modal h3{ margin:0 0 8px; font-size:1.3rem; font-weight:900; }
+      .modal p{ margin:0 0 18px; color:var(--muted); font-weight:600; line-height:1.7; }
+      .modal .mrow{ display:flex; gap:10px; }
+      .modal .mrow .btn{ flex:1; }
+      #toast{
+        position:fixed; bottom:20px; left:50%; transform:translate(-50%, 90px);
+        background:#14532d; color:#fff; font-weight:800; padding:12px 22px; border-radius:999px;
+        box-shadow:0 12px 30px rgba(20,83,45,.35); z-index:80; transition:transform .25s ease;
+        max-width:92vw; text-align:center; font-size:.98rem;
+      }
+      #toast.show{ transform:translate(-50%, 0); }
+      @media (prefers-reduced-motion: reduce){
+        *{ animation:none !important; transition:none !important; }
+        html{ scroll-behavior:auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+
+      <!-- ===== Hero ===== -->
+      <header class="hero">
+        <svg class="wheat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 22 16 8"/><path d="M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z"/></svg>
+        <svg class="wheat2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 22 16 8"/><path d="M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z"/></svg>
+
+        <div class="owner-badge">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+          خاص بالمهندس بيشوي
+        </div>
+        <h1>إدارة المحاصيل الزراعية</h1>
+        <p class="sub">المشتريات والدفعات والنقل وتحميل البرادات — كل شغلك في مكان واحد</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#addFormPanel">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            إضافة محصول جديد
+          </a>
+          <a class="btn btn-ghost" href="#cropsSection">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg>
+            عرض المحاصيل
+          </a>
+          <button class="btn btn-gold" id="btnExcelTop" type="button">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h2"/><path d="M14 13h2"/><path d="M8 17h2"/><path d="M14 17h2"/></svg>
+            تنزيل ملف Excel
+          </button>
+        </div>
+      </header>
+
+      <!-- ===== Quick nav ===== -->
+      <nav class="quicknav" aria-label="أقسام الصفحة">
+        <a href="#summarySection"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg> الملخص</a>
+        <a href="#addFormPanel"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> إضافة محصول</a>
+        <a href="#cropsSection"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg> المحاصيل المسجلة</a>
+      </nav>
+
+      <!-- ===== Summary ===== -->
+      <div class="sec-head" id="summarySection">
+        <span class="ic ic-gold"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg></span>
+        <h2>ملخص الشغل</h2>
+        <span class="hint">بيتحدث تلقائياً مع كل عملية</span>
+      </div>
+      <section class="stats" id="stats" aria-label="الملخص"></section>
+
+      <!-- ===== Add / Edit form ===== -->
+      <section class="panel" id="addFormPanel">
+        <div class="panel-head">
+          <span class="ic ic-green" id="formIcon"></span>
+          <h2 id="formTitle">إضافة محصول جديد</h2>
+          <span class="hint" id="formHint">المتبقي يتحسب تلقائياً</span>
+        </div>
+        <form id="cropForm" autocomplete="off">
+          <div class="fgroup">
+            <div class="fgroup-head"><span class="ic ic-green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg></span> أولاً: بيانات المحصول والمكان</div>
+            <div class="fgrid">
+            <div class="field">
+              <label for="fName"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg> نوع المحصول *</label>
+              <input id="fName" type="text" placeholder="مثال: بطاطس، بصل، طماطم…" required />
+            </div>
+            <div class="field">
+              <label for="fLocation"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> المكان</label>
+              <input id="fLocation" type="text" placeholder="القرية / الأرض / المخزن" />
+            </div>
+            </div>
+          </div>
+          <div class="fgroup">
+            <div class="fgroup-head"><span class="ic ic-sky"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg></span> ثانياً: الفلوس والدفعات</div>
+            <div class="fgrid">
+            <div class="field">
+              <label for="fTotal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg> سعر الشراء الكلي (ج.م) *</label>
+              <input id="fTotal" type="number" inputmode="decimal" min="0" step="any" placeholder="0" required />
+            </div>
+            <div class="field">
+              <label for="fPaid"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg> المدفوع عند الشراء (ج.م)</label>
+              <input id="fPaid" type="number" inputmode="decimal" min="0" step="any" placeholder="0" />
+              <div class="note" id="paidNote">هيتسجل كأول دفعة في سجل الدفعات</div>
+            </div>
+            <div class="field full">
+              <div class="remain-preview" id="remainPreview">
+                <span>المتبقي عليك بعد الدفعة الأولى</span>
+                <b id="remainPreviewVal">0 ج.م</b>
+              </div>
+            </div>
+            </div>
+          </div>
+          <div class="fgroup">
+            <div class="fgroup-head"><span class="ic ic-violet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></span> ثالثاً: العدد والوحدة والتحميل</div>
+            <div class="fgrid">
+            <div class="field">
+              <label for="fCount"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></svg> العدد الكلي للمحصول *</label>
+              <input id="fCount" type="number" inputmode="numeric" min="0" step="1" placeholder="مثال: 1000" required />
+              <div class="note">العدد اللي هتحمّله كله على البرادات</div>
+            </div>
+            <div class="field">
+              <label for="fCapacity"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M4 6l16 12M20 6 4 18M2 12h20M5 5l14 14M19 5 5 19" opacity="0"/><path d="M12 2l1.8 5.2L19 5.5l-3.7 4L19 13.5l-5.2-1.7L12 17l-1.8-5.2L5 13.5l3.7-4L5 5.5l5.2 1.7z" opacity="0"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg> سعة البراد الواحد (عدد الوحدات)</label>
+              <input id="fCapacity" type="number" inputmode="numeric" min="0" step="1" placeholder="مثال: 250" />
+              <div class="note">هيتفتح أول براد بالسعة دي تلقائياً</div>
+            </div>
+            <div class="field">
+              <label for="fUnit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg> وحدة الشغل</label>
+              <select id="fUnit">
+                <option value="شكارة">شكارة</option>
+                <option value="صندوق">صندوق</option>
+                <option value="__custom">وحدة تانية… (اكتبها بنفسك)</option>
+              </select>
+            </div>
+            <div class="field" id="customUnitWrap" style="display:none">
+              <label for="fUnitCustom"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> اكتب الوحدة</label>
+              <input id="fUnitCustom" type="text" placeholder="مثال: قفص، كرتونة، برنيكة…" />
+            </div>
+            <div class="field">
+              <label for="fExtra"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg> الحاجة اللي هتتشال مع المحصول</label>
+              <input id="fExtra" type="text" placeholder="مثال: أكياس فاضية، تبن، صناديق…" />
+            </div>
+            </div>
+          </div>
+          <div class="fgroup">
+            <div class="fgroup-head"><span class="ic ic-gold"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"/><path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M9 18h6"/></svg></span> رابعاً: عربيات النقل</div>
+            <div class="fgrid">
+            <div class="field">
+              <label for="fVehicles"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"/><path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M9 18h6"/></svg> عدد عربيات النقل</label>
+              <input id="fVehicles" type="number" inputmode="numeric" min="0" step="1" placeholder="0" />
+            </div>
+            <div class="field">
+              <label for="fVehicleCost"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg> تكلفة العربية الواحدة (ج.م)</label>
+              <input id="fVehicleCost" type="number" inputmode="decimal" min="0" step="any" placeholder="0" />
+              <div class="note" id="transportNote">إجمالي النقل: 0 ج.م</div>
+            </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit" id="submitBtn"></button>
+            <button class="btn btn-ghost" type="button" id="cancelEditBtn" style="display:none">إلغاء التعديل</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ===== Crops list ===== -->
+      <div class="sec-head" id="cropsSection">
+        <span class="ic ic-green"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg></span>
+        <h2>المحاصيل المسجلة</h2>
+        <span class="cnt" id="cropsCount">0 محصول</span>
+        <span class="hint">كل محصول فيه فلوسه ودفعاته وبراداته</span>
+      </div>
+      <div id="cropsList"></div>
+
+      <!-- ===== Footer ===== -->
+      <footer>
+        <div class="fname">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg>
+          إدارة المحاصيل الزراعية
+        </div>
+        <div class="owner-line">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+          خاص بالمهندس بيشوي
+        </div>
+        <p>مشتريات، دفعات، نقل، وتحميل برادات — بياناتك محفوظة على جهازك وترجع تلاقيها زي ما هي</p>
+      </footer>
+    </div>
+
+    <!-- ===== Confirm modal ===== -->
+    <div class="overlay" id="confirmOverlay" role="dialog" aria-modal="true">
+      <div class="modal">
+        <div class="mic" style="background:var(--rose-soft); color:var(--rose)">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </div>
+        <h3 id="confirmTitle">تأكيد الحذف</h3>
+        <p id="confirmMsg"></p>
+        <div class="mrow">
+          <button class="btn btn-ghost" id="confirmCancel" type="button">إلغاء</button>
+          <button class="btn btn-danger-soft" id="confirmOk" type="button" style="background:#e11d48; color:#fff; border:none;">حذف</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Truck full modal ===== -->
+    <div class="overlay" id="fullOverlay" role="dialog" aria-modal="true">
+      <div class="modal">
+        <div class="mic" style="background:var(--gold-soft); color:var(--gold)">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"/><path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M9 18h6"/></svg>
+        </div>
+        <h3 id="fullTitle">اكتمل البراد!</h3>
+        <p id="fullMsg"></p>
+        <div class="mrow">
+          <button class="btn btn-primary" id="fullOk" type="button">تمام</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" role="status"></div>
+
+<script>
+/* ================= Icons ================= */
+var IC = {
+  sprout:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg>',
+  banknote:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>',
+  wallet:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>',
+  alert:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+  truck:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"/><path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M9 18h6"/></svg>',
+  snow:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m4.9 4.9 14.2 14.2"/><path d="M2 12h20"/><path d="m19.1 4.9-14.2 14.2"/><path d="m9 2 3 3 3-3"/><path d="m9 22 3-3 3 3"/><path d="m2 9 3 3-3 3"/><path d="m22 9-3 3 3 3"/></svg>',
+  pin:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
+  box:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
+  pkgPlus:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
+  check:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  pencil:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>',
+  trash:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  trashSm:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  plus:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  send:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>',
+  history:'<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>',
+  fridge:'<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18H3c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v11"/><path d="M14 9h4l4 4v4c0 .6-.4 1-1 1h-2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M9 18h6"/></svg>',
+  flag:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>'
+};
+
+/* ================= State ================= */
+var LS_KEY = 'agri-crops-manager-v1';
+var state = loadState();
+var editingId = null;
+var confirmCb = null;
+
+function loadState(){
+  try{
+    var raw = localStorage.getItem(LS_KEY);
+    if(raw){ var s = JSON.parse(raw); if(s && Array.isArray(s.crops)) return s; }
+  }catch(e){}
+  return { crops: [] };
+}
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function num(v){ var n = parseFloat(v); return isNaN(n) ? 0 : n; }
+function fmt(n){ return (Math.round(num(n)*100)/100).toLocaleString('ar-EG-u-nu-latn'); }
+function fmtInt(n){ return Math.round(num(n)).toLocaleString('ar-EG-u-nu-latn'); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtDate(iso){
+  if(!iso) return '';
+  var d = new Date(iso + 'T00:00:00');
+  if(isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('ar-EG-u-nu-latn', { year:'numeric', month:'short', day:'numeric' });
+}
+function findCrop(id){ for(var i=0;i<state.crops.length;i++) if(state.crops[i].id===id) return state.crops[i]; return null; }
+function paidOf(c){ return c.payments.reduce(function(s,p){ return s + num(p.amount); }, 0); }
+function remainingOf(c){ return num(c.totalPrice) - paidOf(c); }
+function loadedOf(c){ return c.trucks.reduce(function(s,t){ return s + num(t.loaded); }, 0); }
+function transportTotal(c){ return num(c.transportCount) * num(c.transportPerVehicle); }
+function statusText(s){ return s==='full' ? 'اكتمل' : (s==='shipped' ? 'سافر' : 'بيتحمّل'); }
+
+/* ================= Toast ================= */
+var toastTimer = null;
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+}
+
+/* ================= Confirm modal ================= */
+function askConfirm(msg, cb){
+  document.getElementById('confirmMsg').textContent = msg;
+  confirmCb = cb;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+document.getElementById('confirmCancel').addEventListener('click', function(){
+  document.getElementById('confirmOverlay').classList.remove('open'); confirmCb = null;
+});
+document.getElementById('confirmOk').addEventListener('click', function(){
+  document.getElementById('confirmOverlay').classList.remove('open');
+  if(confirmCb) confirmCb();
+  confirmCb = null;
+});
+document.getElementById('fullOk').addEventListener('click', function(){
+  document.getElementById('fullOverlay').classList.remove('open');
+});
+
+/* ================= Render: summary ================= */
+function renderSummary(){
+  var totBuy=0, totPaid=0, totDue=0, totTrans=0;
+  state.crops.forEach(function(c){
+    totBuy += num(c.totalPrice);
+    totPaid += paidOf(c);
+    totTrans += transportTotal(c);
+  });
+  totDue = totBuy - totPaid;
+  document.getElementById('stats').innerHTML =
+    statCard('ic-green', IC.banknote, 'إجمالي المشتريات', totBuy) +
+    statCard('ic-sky', IC.wallet, 'إجمالي المدفوع', totPaid) +
+    statCard('ic-rose', IC.alert, 'إجمالي الباقي عليك', totDue) +
+    statCard('ic-gold', IC.truck, 'إجمالي تكلفة النقل', totTrans);
+}
+function statCard(cls, icon, label, val){
+  return '<div class="stat"><span class="ic '+cls+'">'+icon+'</span><div><div class="lbl">'+label+'</div><div class="val">'+fmt(val)+' <small>ج.م</small></div></div></div>';
+}
+
+/* ================= Render: crops ================= */
+function renderCrops(){
+  var box = document.getElementById('cropsList');
+  var cntEl = document.getElementById('cropsCount');
+  if(cntEl) cntEl.textContent = fmtInt(state.crops.length) + (state.crops.length === 1 ? ' محصول' : ' محصول');
+  if(!state.crops.length){
+    box.innerHTML = '<section class="panel empty"><div class="ic">'+IC.sprout.replace('22','40').replace('22','40')+'</div><h3>لسه مفيش محاصيل</h3><p>ضيف أول محصول من النموذج اللي فوق وابدأ الشغل.</p></section>';
+    return;
+  }
+  box.innerHTML = state.crops.map(cropCard).join('');
+}
+function cropCard(c){
+  var paid = paidOf(c), due = remainingOf(c), loaded = loadedOf(c);
+  var pct = c.totalCount > 0 ? Math.min(100, Math.round(loaded / c.totalCount * 100)) : 0;
+  var dueChip = due > 0
+    ? '<span class="chip chip-due">'+IC.alert.replace('24','14').replace('24','14')+' باقي عليه '+fmt(due)+' ج.م</span>'
+    : '<span class="chip chip-paid">'+IC.check+' مدفوع بالكامل</span>';
+  var chips = '';
+  if(c.location) chips += '<span class="chip chip-loc">'+IC.pin+' '+esc(c.location)+'</span>';
+  chips += '<span class="chip chip-unit">'+IC.box+' الشغل بال'+esc(c.unit)+'</span>';
+  if(c.extraItem) chips += '<span class="chip chip-extra">'+IC.pkgPlus+' يتشال معاه: '+esc(c.extraItem)+'</span>';
+  chips += dueChip;
+
+  var html = '<article class="crop" id="crop-'+c.id+'">';
+  html += '<div class="crop-top"><div class="crop-title-row">'
+    + '<h3 class="crop-name"><span class="ic">'+IC.sprout+'</span>'+esc(c.name)+'</h3>'
+    + '<div class="crop-tools">'
+    + '<button class="icon-btn" type="button" title="تعديل المحصول" onclick="startEdit(\''+c.id+'\')">'+IC.pencil+'</button>'
+    + '<button class="icon-btn danger" type="button" title="حذف المحصول" onclick="deleteCrop(\''+c.id+'\')">'+IC.trash+'</button>'
+    + '</div></div>'
+    + '<div class="chips">'+chips+'</div></div>';
+
+  html += '<div class="money-grid">'
+    + '<div class="money total"><div class="mlbl">'+IC.banknote.replace('24','15').replace('24','15')+' سعر الشراء</div><div class="mval">'+fmt(c.totalPrice)+' <small>ج.م</small></div></div>'
+    + '<div class="money paid"><div class="mlbl">'+IC.wallet.replace('24','15').replace('24','15')+' المدفوع</div><div class="mval">'+fmt(paid)+' <small>ج.م</small></div></div>'
+    + '<div class="money m3 '+(due>0?'due':'done')+'"><div class="mlbl">'+(due>0?IC.alert.replace('24','15').replace('24','15'):IC.check)+' المتبقي</div><div class="mval">'+(due>0?fmt(due)+' <small>ج.م</small>':'خالص ✓'.replace(' ✓',''))+'</div></div>'
+    + '</div>';
+
+  if(num(c.transportCount) > 0 || transportTotal(c) > 0){
+    html += '<div class="transport-line">'+IC.truck.replace('24','19').replace('24','19')
+      + '<span>عربيات النقل: <b>'+fmtInt(c.transportCount)+' عربية</b></span>'
+      + '<span>× تكلفة العربية <b>'+fmt(c.transportPerVehicle)+' ج.م</b></span>'
+      + '<span>= إجمالي النقل <b>'+fmt(transportTotal(c))+' ج.م</b></span></div>';
+  }
+
+  /* loading progress */
+  html += '<div class="crop-sec"><div class="crop-sec-head">'+IC.box.replace('15','19').replace('15','19')+' تقدّم التحميل <span class="cnt">بال'+esc(c.unit)+'</span></div>'
+    + '<div class="progress"><i style="width:'+pct+'%"></i></div>'
+    + '<div class="progress-meta"><span>اتحمّل '+fmtInt(loaded)+' من '+fmtInt(c.totalCount)+' '+esc(c.unit)+'</span><span>'+fmtInt(pct)+'٪</span></div></div>';
+
+  /* payments */
+  html += '<div class="crop-sec"><div class="crop-sec-head">'+IC.history+' سجل الدفعات <span class="cnt">('+c.payments.length+' دفعة)</span></div>';
+  if(c.payments.length){
+    html += c.payments.map(function(p){
+      return '<div class="pay-row"><span class="amt">'+fmt(p.amount)+' ج.م</span>'
+        + '<span class="meta">'+esc(fmtDate(p.date))+(p.note ? ' — '+esc(p.note) : '')+'</span>'
+        + '<button class="mini-del del" type="button" title="حذف الدفعة" onclick="deletePayment(\''+c.id+'\',\''+p.id+'\')">'+IC.trashSm+'</button></div>';
+    }).join('');
+  } else {
+    html += '<div class="empty-note">مفيش دفعات مسجلة لسه.</div>';
+  }
+  html += '<div class="inline-form">'
+    + '<input class="w110" type="number" inputmode="decimal" min="0" step="any" placeholder="مبلغ الدفعة" id="pay-amt-'+c.id+'" />'
+    + '<input type="date" id="pay-date-'+c.id+'" value="'+todayStr()+'" />'
+    + '<input class="grow" type="text" placeholder="ملحوظة (اختياري)" id="pay-note-'+c.id+'" />'
+    + '<button class="btn btn-sky btn-sm" type="button" onclick="addPayment(\''+c.id+'\')">'+IC.plus+' إضافة دفعة</button>'
+    + '</div></div>';
+
+  /* trucks */
+  html += '<div class="crop-sec" style="padding-bottom:18px"><div class="crop-sec-head">'+IC.fridge+' البرادات <span class="cnt">('+c.trucks.length+' براد)</span></div>';
+  if(c.trucks.length){
+    html += c.trucks.map(function(t){ return truckCard(c, t); }).join('');
+  } else {
+    html += '<div class="empty-note">مفيش برادات لسه — افتح أول براد من تحت.</div>';
+  }
+  html += '<div class="inline-form">'
+    + '<input class="w110" type="number" inputmode="numeric" min="1" step="1" placeholder="سعة البراد" id="truck-cap-'+c.id+'" value="'+(c.defaultCapacity||'')+'" />'
+    + '<button class="btn btn-primary btn-sm" type="button" onclick="addTruckBtn(\''+c.id+'\')">'+IC.plus+' فتح براد جديد</button>'
+    + '</div></div>';
+
+  html += '</article>';
+  return html;
+}
+function truckCard(c, t){
+  var pct = t.capacity > 0 ? Math.min(100, Math.round(t.loaded / t.capacity * 100)) : 0;
+  var barCls = t.status === 'full' ? 'gold' : (t.status === 'shipped' ? '' : 'sky');
+  var stCls = t.status === 'full' ? 'status-full' : (t.status === 'shipped' ? 'status-shipped' : 'status-loading');
+  var html = '<div class="truck '+t.status+'">';
+  html += '<div class="truck-head"><span class="tname"><span class="ic">'+IC.snow+'</span> براد رقم '+fmtInt(t.num)+'</span>'
+    + '<span class="status '+stCls+'">'+statusText(t.status)+'</span>'
+    + '<button class="mini-del del-truck" type="button" title="حذف البراد" onclick="deleteTruck(\''+c.id+'\',\''+t.id+'\')">'+IC.trashSm+'</button></div>';
+  html += '<div class="progress '+barCls+'" style="margin-top:12px"><i style="width:'+pct+'%"></i></div>'
+    + '<div class="progress-meta"><span>اتحمّل '+fmtInt(t.loaded)+' من '+fmtInt(t.capacity)+' '+esc(c.unit)+'</span><span>'+fmtInt(pct)+'٪</span></div>';
+
+  if(t.status === 'full'){
+    html += '<div class="full-banner">'+IC.flag+' البراد ده اكتمل واتقفل — جاهز للسفر.</div>';
+  }
+  if(t.status === 'loading'){
+    html += '<div class="load-btns">'
+      + [1,5,10,50].map(function(n){ return '<button class="load-btn" type="button" onclick="loadAdd(\''+c.id+'\',\''+t.id+'\','+n+')">+ '+fmtInt(n)+'</button>'; }).join('')
+      + '<span class="custom-load"><input type="number" inputmode="numeric" min="1" step="1" placeholder="عدد مخصص" id="custom-'+t.id+'" /><button class="load-btn" type="button" onclick="loadCustom(\''+c.id+'\',\''+t.id+'\')">إضافة</button></span>'
+      + (t.loaded > 0 ? '<button class="load-btn undo" type="button" onclick="loadUndo(\''+c.id+'\',\''+t.id+'\')">تراجع −1</button>' : '')
+      + '</div>';
+  }
+  if(t.status === 'full'){
+    html += '<div class="truck-actions"><button class="btn btn-primary btn-sm" type="button" onclick="markShipped(\''+c.id+'\',\''+t.id+'\')">'+IC.send+' تحديد إن البراد سافر</button></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function render(){ renderSummary(); renderCrops(); }
+
+/* ================= Form logic ================= */
+var form = document.getElementById('cropForm');
+function updatePreviews(){
+  var total = num(document.getElementById('fTotal').value);
+  var paid = num(document.getElementById('fPaid').value);
+  var due = total - paid;
+  var pv = document.getElementById('remainPreview');
+  document.getElementById('remainPreviewVal').textContent = fmt(due) + ' ج.م';
+  pv.classList.toggle('ok', due <= 0 && total > 0);
+  var vc = num(document.getElementById('fVehicles').value);
+  var vcost = num(document.getElementById('fVehicleCost').value);
+  document.getElementById('transportNote').textContent = 'إجمالي النقل: ' + fmt(vc * vcost) + ' ج.م';
+}
+['fTotal','fPaid','fVehicles','fVehicleCost'].forEach(function(id){
+  document.getElementById(id).addEventListener('input', updatePreviews);
+});
+document.getElementById('fUnit').addEventListener('change', function(){
+  document.getElementById('customUnitWrap').style.display = this.value === '__custom' ? '' : 'none';
+});
+function setSubmitUI(){
+  document.getElementById('formIcon').innerHTML = IC.sprout;
+  document.getElementById('submitBtn').innerHTML = (editingId ? IC.check + ' حفظ التعديلات' : IC.plus + ' إضافة المحصول');
+  document.getElementById('formTitle').textContent = editingId ? 'تعديل المحصول' : 'إضافة محصول جديد';
+  document.getElementById('cancelEditBtn').style.display = editingId ? '' : 'none';
+  document.getElementById('fPaid').disabled = !!editingId;
+  document.getElementById('paidNote').textContent = editingId ? 'الدفعات بتتعدل من سجل الدفعات جوه كارت المحصول' : 'هيتسجل كأول دفعة في سجل الدفعات';
+  document.getElementById('formHint').textContent = editingId ? 'بتعدّل بيانات المحصول' : 'المتبقي يتحسب تلقائياً';
+}
+form.addEventListener('submit', function(ev){
+  ev.preventDefault();
+  var name = document.getElementById('fName').value.trim();
+  if(!name){ toast('اكتب نوع المحصول الأول'); return; }
+  var unitSel = document.getElementById('fUnit').value;
+  var unit = unitSel === '__custom' ? (document.getElementById('fUnitCustom').value.trim() || 'وحدة') : unitSel;
+  var capacity = Math.max(0, Math.floor(num(document.getElementById('fCapacity').value)));
+  var data = {
+    name: name,
+    location: document.getElementById('fLocation').value.trim(),
+    totalPrice: num(document.getElementById('fTotal').value),
+    totalCount: Math.max(0, Math.floor(num(document.getElementById('fCount').value))),
+    unit: unit,
+    extraItem: document.getElementById('fExtra').value.trim(),
+    transportCount: Math.max(0, Math.floor(num(document.getElementById('fVehicles').value))),
+    transportPerVehicle: num(document.getElementById('fVehicleCost').value),
+    defaultCapacity: capacity
+  };
+  if(editingId){
+    var c = findCrop(editingId);
+    if(c){ Object.assign(c, data); }
+    editingId = null;
+    toast('اتحفظت التعديلات');
+  } else {
+    var crop = Object.assign({ id: uid(), payments: [], trucks: [] }, data);
+    var paidInit = num(document.getElementById('fPaid').value);
+    if(paidInit > 0) crop.payments.push({ id: uid(), amount: paidInit, date: todayStr(), note: 'دفعة أولى عند الشراء' });
+    if(capacity > 0) crop.trucks.push({ id: uid(), num: 1, capacity: capacity, loaded: 0, status: 'loading' });
+    state.crops.unshift(crop);
+    toast('اتضاف المحصول: ' + name);
+  }
+  save(); render(); resetForm();
+  document.getElementById('cropsList').scrollIntoView({ behavior:'smooth', block:'start' });
+});
+function resetForm(){
+  form.reset();
+  document.getElementById('customUnitWrap').style.display = 'none';
+  setSubmitUI(); updatePreviews();
+}
+document.getElementById('cancelEditBtn').addEventListener('click', function(){
+  editingId = null; resetForm(); toast('اتلغى التعديل');
+});
+function startEdit(id){
+  var c = findCrop(id); if(!c) return;
+  editingId = id;
+  document.getElementById('fName').value = c.name;
+  document.getElementById('fLocation').value = c.location || '';
+  document.getElementById('fTotal').value = c.totalPrice;
+  document.getElementById('fPaid').value = paidOf(c);
+  document.getElementById('fCount').value = c.totalCount;
+  document.getElementById('fCapacity').value = c.defaultCapacity || '';
+  document.getElementById('fExtra').value = c.extraItem || '';
+  document.getElementById('fVehicles').value = c.transportCount;
+  document.getElementById('fVehicleCost').value = c.transportPerVehicle;
+  var sel = document.getElementById('fUnit');
+  if(c.unit === 'شكارة' || c.unit === 'صندوق'){ sel.value = c.unit; document.getElementById('customUnitWrap').style.display = 'none'; }
+  else { sel.value = '__custom'; document.getElementById('fUnitCustom').value = c.unit; document.getElementById('customUnitWrap').style.display = ''; }
+  setSubmitUI(); updatePreviews();
+  document.getElementById('addFormPanel').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+function deleteCrop(id){
+  var c = findCrop(id); if(!c) return;
+  askConfirm('هتحذف محصول «' + c.name + '» بكل دفعاته وبراداته. متأكد؟', function(){
+    state.crops = state.crops.filter(function(x){ return x.id !== id; });
+    if(editingId === id){ editingId = null; resetForm(); }
+    save(); render(); toast('اتحذف المحصول');
+  });
+}
+
+/* ================= Payments ================= */
+function addPayment(cid){
+  var c = findCrop(cid); if(!c) return;
+  var amt = num(document.getElementById('pay-amt-' + cid).value);
+  if(amt <= 0){ toast('اكتب مبلغ الدفعة الأول'); return; }
+  var date = document.getElementById('pay-date-' + cid).value || todayStr();
+  var note = document.getElementById('pay-note-' + cid).value.trim();
+  c.payments.push({ id: uid(), amount: amt, date: date, note: note });
+  save(); render();
+  toast('اتسجلت دفعة ' + fmt(amt) + ' ج.م — الباقي دلوقتي ' + fmt(Math.max(0, remainingOf(c))) + ' ج.م');
+}
+function deletePayment(cid, pid){
+  var c = findCrop(cid); if(!c) return;
+  askConfirm('هتحذف الدفعة دي من السجل. متأكد؟', function(){
+    c.payments = c.payments.filter(function(p){ return p.id !== pid; });
+    save(); render(); toast('اتحذفت الدفعة');
+  });
+}
+
+/* ================= Trucks ================= */
+function nextTruckNum(c){
+  var m = 0; c.trucks.forEach(function(t){ if(t.num > m) m = t.num; }); return m + 1;
+}
+function addTruck(cid, capacity){
+  var c = findCrop(cid); if(!c) return null;
+  var cap = capacity;
+  if(cap == null) cap = Math.floor(num(document.getElementById('truck-cap-' + cid).value));
+  if(cap <= 0){ toast('اكتب سعة البراد الأول (كام ' + c.unit + ' بيشيل)'); return null; }
+  var t = { id: uid(), num: nextTruckNum(c), capacity: cap, loaded: 0, status: 'loading' };
+  c.trucks.push(t);
+  c.defaultCapacity = cap;
+  return t;
+}
+function addTruckBtn(cid){
+  var t = addTruck(cid);
+  if(t){ save(); render(); toast('اتفتح براد رقم ' + fmtInt(t.num) + ' بسعة ' + fmtInt(t.capacity) + ' ' + findCrop(cid).unit); }
+}
+function onTruckFull(c, t){
+  var remainingTotal = c.totalCount > 0 ? c.totalCount - loadedOf(c) : 1;
+  var newTruck = null;
+  if(remainingTotal > 0){
+    newTruck = { id: uid(), num: nextTruckNum(c), capacity: t.capacity, loaded: 0, status: 'loading' };
+    c.trucks.push(newTruck);
+  }
+  save(); render();
+  document.getElementById('fullTitle').textContent = 'اكتمل البراد رقم ' + fmtInt(t.num) + '!';
+  document.getElementById('fullMsg').textContent =
+    'براد «' + c.name + '» اتحمّل بالكامل (' + fmtInt(t.capacity) + ' ' + c.unit + ') وبقى جاهز للسفر.'
+    + (newTruck ? ' واتفتح براد جديد رقم ' + fmtInt(newTruck.num) + ' تلقائياً عشان تكمل تحميل عليه.' : ' وبكده العدد الكلي للمحصول اكتمل.');
+  document.getElementById('fullOverlay').classList.add('open');
+}
+function loadAdd(cid, tid, n){
+  var c = findCrop(cid); if(!c) return;
+  var t = null; c.trucks.forEach(function(x){ if(x.id === tid) t = x; });
+  if(!t || t.status !== 'loading') return;
+  var roomTruck = t.capacity - t.loaded;
+  var roomTotal = c.totalCount > 0 ? c.totalCount - loadedOf(c) : Infinity;
+  var add = Math.min(n, roomTruck, roomTotal);
+  if(add <= 0){
+    toast(roomTotal <= 0 ? 'العدد الكلي للمحصول اكتمل خلاص' : 'البراد ده اكتمل');
+    return;
+  }
+  t.loaded += add;
+  if(t.loaded >= t.capacity){
+    t.status = 'full';
+    onTruckFull(c, t);
+    return;
+  }
+  save(); render();
+  if(add < n) toast('اتضاف ' + fmtInt(add) + ' بس — وصلت لحد العدد الكلي');
+}
+function loadCustom(cid, tid){
+  var inp = document.getElementById('custom-' + tid);
+  var n = Math.floor(num(inp.value));
+  if(n <= 0){ toast('اكتب العدد اللي عايز تضيفه'); return; }
+  loadAdd(cid, tid, n);
+}
+function loadUndo(cid, tid){
+  var c = findCrop(cid); if(!c) return;
+  var t = null; c.trucks.forEach(function(x){ if(x.id === tid) t = x; });
+  if(!t || t.status !== 'loading' || t.loaded <= 0) return;
+  t.loaded -= 1;
+  save(); render();
+}
+function markShipped(cid, tid){
+  var c = findCrop(cid); if(!c) return;
+  c.trucks.forEach(function(x){ if(x.id === tid) x.status = 'shipped'; });
+  save(); render(); toast('البراد سافر — بالسلامة');
+}
+function deleteTruck(cid, tid){
+  var c = findCrop(cid); if(!c) return;
+  askConfirm('هتحذف البراد ده بتحميله. متأكد؟', function(){
+    c.trucks = c.trucks.filter(function(x){ return x.id !== tid; });
+    save(); render(); toast('اتحذف البراد');
+  });
+}
+
+/* ================= Excel export ================= */
+function exportExcel(){
+  if(!state.crops.length){ toast('ضيف محصول الأول عشان تنزّل ملف Excel'); return; }
+  if(typeof XLSX === 'undefined'){ exportCSV(); return; }
+  var wb = XLSX.utils.book_new();
+
+  var totBuy=0, totPaid=0, totTrans=0;
+  state.crops.forEach(function(c){ totBuy += num(c.totalPrice); totPaid += paidOf(c); totTrans += transportTotal(c); });
+
+  var summary = [
+    ['إدارة المحاصيل الزراعية'],
+    ['خاص بالمهندس بيشوي'],
+    ['تاريخ التصدير', new Date().toLocaleDateString('ar-EG-u-nu-latn')],
+    [],
+    ['إجمالي المشتريات (ج.م)', totBuy],
+    ['إجمالي المدفوع (ج.م)', totPaid],
+    ['إجمالي المتبقي (ج.م)', totBuy - totPaid],
+    ['إجمالي تكلفة النقل (ج.م)', totTrans],
+    ['عدد المحاصيل', state.crops.length]
+  ];
+  var ws0 = XLSX.utils.aoa_to_sheet(summary);
+  ws0['!cols'] = [{ wch: 30 }, { wch: 18 }];
+  ws0['!views'] = [{ RTL: true }];
+  XLSX.utils.book_append_sheet(wb, ws0, 'الملخص');
+
+  var cropRows = [['المحصول','المكان','وحدة الشغل','الحاجة اللي هتتشال معاه','العدد الكلي','سعر الشراء (ج.م)','المدفوع (ج.م)','المتبقي (ج.م)','عدد عربيات النقل','تكلفة العربية (ج.م)','إجمالي النقل (ج.م)','اتحمّل','عدد البرادات','برادات سافرت']];
+  state.crops.forEach(function(c){
+    cropRows.push([c.name, c.location || '', c.unit, c.extraItem || '', c.totalCount, num(c.totalPrice), paidOf(c), remainingOf(c), c.transportCount, num(c.transportPerVehicle), transportTotal(c), loadedOf(c), c.trucks.length, c.trucks.filter(function(t){ return t.status==='shipped'; }).length]);
+  });
+  var ws1 = XLSX.utils.aoa_to_sheet(cropRows);
+  ws1['!cols'] = cropRows[0].map(function(){ return { wch: 16 }; });
+  ws1['!views'] = [{ RTL: true }];
+  XLSX.utils.book_append_sheet(wb, ws1, 'المحاصيل');
+
+  var payRows = [['المحصول','مبلغ الدفعة (ج.م)','التاريخ','ملحوظة']];
+  state.crops.forEach(function(c){
+    c.payments.forEach(function(p){ payRows.push([c.name, num(p.amount), p.date || '', p.note || '']); });
+  });
+  var ws2 = XLSX.utils.aoa_to_sheet(payRows);
+  ws2['!cols'] = [{ wch: 20 }, { wch: 18 }, { wch: 14 }, { wch: 30 }];
+  ws2['!views'] = [{ RTL: true }];
+  XLSX.utils.book_append_sheet(wb, ws2, 'الدفعات');
+
+  var truckRows = [['المحصول','رقم البراد','السعة','اتحمّل','الحالة']];
+  state.crops.forEach(function(c){
+    c.trucks.forEach(function(t){ truckRows.push([c.name, t.num, t.capacity, t.loaded, statusText(t.status)]); });
+  });
+  var ws3 = XLSX.utils.aoa_to_sheet(truckRows);
+  ws3['!cols'] = [{ wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
+  ws3['!views'] = [{ RTL: true }];
+  XLSX.utils.book_append_sheet(wb, ws3, 'البرادات');
+
+  XLSX.writeFile(wb, 'المحاصيل-الزراعية.xlsx');
+  toast('اتنزّل ملف Excel بكل البيانات');
+}
+function exportCSV(){
+  var lines = [['خاص بالمهندس بيشوي'],['المحصول','المكان','الوحدة','العدد الكلي','سعر الشراء','المدفوع','المتبقي','إجمالي النقل','اتحمّل']];
+  state.crops.forEach(function(c){
+    lines.push([c.name, c.location||'', c.unit, c.totalCount, num(c.totalPrice), paidOf(c), remainingOf(c), transportTotal(c), loadedOf(c)]);
+  });
+  var csv = '﻿' + lines.map(function(r){ return r.map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'المحاصيل-الزراعية.csv';
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  toast('اتنزّل ملف البيانات');
+}
+document.getElementById('btnExcelTop').addEventListener('click', exportExcel);
+
+/* ================= Init ================= */
+setSubmitUI();
+updatePreviews();
+render();
+</script>
+  </body>
+</html>
